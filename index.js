@@ -12,11 +12,13 @@ const items = document.querySelectorAll(".item");
     clone.classList.add("clone");
     item.before(clone);
 
-    // TODO: see what happens when I remove this
+    // Related to styling
     item.style.pointerEvents = "none";
     item.dataset.state = "dragging";
+
     // make sure item is position absolute in relation to body
     document.body.append(item);
+
     // tell DOM that further pointer events related to this
     // item even if item moved from under the pointer or
     // or pointer moved away from item and is no longer on this item
@@ -47,9 +49,9 @@ const items = document.querySelectorAll(".item");
         return;
       }
 
-      console.log('here');
       const pointersDropzoneChildren = [...pointersDropzone.children];
       const cloneIndex = pointersDropzoneChildren.findIndex((child) => child === clone);
+      
       pointersDropzoneChildren.forEach((child, index) => {
         if (hitTest === clone) return;
 
@@ -67,14 +69,16 @@ const items = document.querySelectorAll(".item");
     const up = (e) => {
       clone.after(item);
       clone.remove();
+
       item.style.left = "";
       item.style.top = "";
+      item.style.pointerEvents = "";
       item.dataset.state = "idle";
+      
       item.releasePointerCapture(e.pointerId);
 
       item.removeEventListener("pointerup", up);
       item.removeEventListener("pointermove", move);
-      item.style.pointerEvents = "";
     };
 
     item.addEventListener("pointermove", move);
