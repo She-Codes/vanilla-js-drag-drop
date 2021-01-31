@@ -2,13 +2,16 @@
 // https://www.youtube.com/watch?v=QVgEzUXeT-I&t=1573s
 
 const items = document.querySelectorAll(".item");
+let down = false;
+let clone;
 
 [...items].forEach((item) => {
   item.addEventListener("pointerdown", (e) => {
+    down = true;
     item.style.left = `${item.getBoundingClientRect().left}px`;
     item.style.top = `${item.getBoundingClientRect().top}px`;
 
-    const clone = item.cloneNode();
+    clone = item.cloneNode();
     clone.classList.add("clone");
     item.before(clone);
 
@@ -23,67 +26,66 @@ const items = document.querySelectorAll(".item");
     // item even if item moved from under the pointer or
     // or pointer moved away from item and is no longer on this item
     item.setPointerCapture(e.pointerId);
+  });
 
-    // add other event listeners here as matter of taste;
-    // you only need these others if
-    // pointerdown has happened
-    const move = (e) => {
+  // other listeners could also be here
+  const move = (e) => {
+    if (down) {
       // delta since the last pointer move event
       item.style.left = `${parseFloat(item.style.left) + e.movementX}px`;
       item.style.top = `${parseFloat(item.style.top) + e.movementY}px`;
-
+      
       // returns the element at pointer coordinate
       const hitTest = document.elementFromPoint(
         parseFloat(item.style.left),
         parseFloat(item.style.top)
       );
-
+  
       const pointersDropzone = hitTest.closest("[data-dropzone]");
       const clonesDropzone = clone.closest("[data-dropzone]");
-
+  
       // if pointer not over dropzone return
       if (!pointersDropzone) return;
-
+  
       if (clonesDropzone !== pointersDropzone) {
         pointersDropzone.append(clone);
         return;
       }
-
+  
       const pointersDropzoneChildren = [...pointersDropzone.children];
       const cloneIndex = pointersDropzoneChildren.findIndex((child) => child === clone);
       
       pointersDropzoneChildren.forEach((child, index) => {
         if (hitTest === clone) return;
-
+  
         if (hitTest === child) {
           if (cloneIndex < index) {
             child.after(clone);
             return;
           }
-
+  
           child.before(clone);
         }
       });
-    };
+    }
+  };
 
-    const up = (e) => {
-      clone.after(item);
-      clone.remove();
+  const up = (e) => {
+    down = false;
+    clone.after(item);
+    clone.remove();
 
-      item.style.left = "";
-      item.style.top = "";
-      item.style.pointerEvents = "";
-      item.dataset.state = "idle";
-      
-      item.releasePointerCapture(e.pointerId);
+    item.style.left = "";
+    item.style.top = "";
+    item.style.pointerEvents = "";
+    item.dataset.state = "idle";
+    
+    item.releasePointerCapture(e.pointerId);
 
-      item.removeEventListener("pointerup", up);
-      item.removeEventListener("pointermove", move);
-    };
+    // item.removeEventListener("pointerup", up);
+    // item.removeEventListener("pointermove", move);
+  };
 
-    item.addEventListener("pointermove", move);
-    item.addEventListener("pointerup", up);
-  });
-
-  // other listeners could also be here
+  item.addEventListener("pointermove", move);
+  item.addEventListener("pointerup", up);
 });
